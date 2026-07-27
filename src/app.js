@@ -1,6 +1,7 @@
 import { AppStore, STORAGE_KEY } from "./store.js?v=20260724-5";
 import { DEFAULT_INTERACTION_CENTER, DEFAULT_STATE, DEFAULT_VALUE_ADDED_STATE, HOTEL_TYPES, MATERIAL_CATEGORIES, TEST_ACCOUNTS, VALUE_ADDED_SERVICE_CATALOG } from "./data.js?v=20260724-5";
 import { OTA_SNAPSHOT } from "./ota-snapshot.js?v=20260720-43";
+import { EMBEDDED_RULES_MANIFEST } from "./rules-embedded.js?v=20260727-1";
 import {
   assessRisk, BODY_MAX, BODY_MIN, BODY_TARGET, buildImageLayout, buildTopicFingerprint, charCount, clone, CONTENT_IMAGE_LIMIT,
   computeContentWorkflow, computeDashboard, createWeekPlan, deriveMineOverview, detectPeak, generateContent, localDate,
@@ -601,7 +602,12 @@ class App {
   async refreshAiRules() {
     try {
       this.aiRules = await this.requestApi("/api/ai/rules");
-      if (this.state.onboardingCompleted && this.state.ui.view === "aiRules") this.render();
+      this.aiRules._source = "backend";
+    } catch (error) {
+      this.aiRules = EMBEDDED_RULES_MANIFEST;
+      this.aiRules._source = "embedded";
+    }
+    if (this.state.onboardingCompleted && this.state.ui.view === "aiRules") this.render();
     } catch (error) { this.aiError = error.message; }
   }
 
@@ -2120,13 +2126,14 @@ class App {
   renderAiRules() {
     const rules = this.aiRules;
     if (!rules) return `<div class="card empty"><i class="fa fa-spinner fa-spin"></i>正在从后端读取生效规则…</div>`;
+    const rulesSource = rules._source === "backend" ? "服务端实时读取" : "静态嵌入";
     return `
       <section class="card hero"><div><span class="badge" style="color:#0b5e58;background:#9ce5d4">规则版本 ${escapeHtml(rules.version)}</span><h1>分阶段 Skills + 酒店业务 RAG</h1><p>选题、内容、发布和复盘是四个隔离任务。每次模型调用只加载当前阶段的短运行提示词，并只挂载本轮检索命中的事实、图片和历史内容。</p></div><a class="btn" href="./AI_RULES.md" target="_blank" rel="noopener">打开体系文档 <i class="fa fa-external-link"></i></a></section>
       <section class="card card-pad section-space"><div class="card-title"><div><h2>Skills 执行矩阵</h2><div class="muted tiny" style="margin-top:4px">完整 SKILL.md 用于治理和审阅；模型运行时只装载对应 runtime-prompt.md</div></div><span class="badge badge-success">${rules.skills?.length || 0} 个可执行技能</span></div><div class="skill-grid">${(rules.skills || []).map((skill, index) => `<details class="skill-card" ${index === 0 ? "open" : ""}><summary><span class="skill-index">${String(index + 1).padStart(2, "0")}</span><span><strong>${escapeHtml(skill.name)}</strong><small>${escapeHtml(skill.id)} · ${escapeHtml(skill.stage)}</small></span><i class="fa fa-angle-down"></i></summary><div class="skill-card-body"><p>${escapeHtml(skill.purpose)}</p><div class="skill-meta"><span>触发：${skill.triggers.map(escapeHtml).join("、")}</span><span>阶段：${skill.modes.map(escapeHtml).join(" / ")}</span><span>运行提示词：${escapeHtml(skill.runtimeSource)}</span></div><h4>模型实际加载的短提示词</h4><pre class="skill-instruction">${escapeHtml(skill.runtimePrompt)}</pre><h4>完整技能治理说明</h4><pre class="skill-instruction">${escapeHtml(skill.instructions)}</pre><h4>详细参考资料</h4><pre class="skill-reference">${escapeHtml(skill.referenceText)}</pre></div></details>`).join("")}</div></section>
       <section class="card card-pad section-space"><div class="card-title"><h2>任务模式与装载计划</h2><span class="badge badge-info">运行时路由</span></div><div class="mode-grid">${(rules.promptVariants || []).map(item => `<div class="mode-card"><strong>${escapeHtml(item.mode)}</strong><span>${escapeHtml(item.description)}</span><div>${item.skills.map(skill => `<code>${escapeHtml(skill)}</code>`).join(" → ")}</div></div>`).join("")}</div></section>
       <section class="card card-pad section-space"><div class="card-title"><div><h2>RAG 挂载策略</h2><div class="muted tiny" style="margin-top:4px">检索发生在调用模型之前，未命中的资料不会进入提示词</div></div><span class="badge badge-info">${escapeHtml(rules.ragPolicy?.engine || "阶段检索")}</span></div><div class="mode-grid">${Object.entries(rules.ragPolicy || {}).filter(([key]) => key !== "engine").map(([key, value]) => `<div class="mode-card"><strong>${escapeHtml(key)}</strong><span>${escapeHtml(value)}</span></div>`).join("")}</div></section>
       <section class="grid-2 section-space"><div class="card card-pad"><div class="card-title"><h2>选题推荐规则</h2><span class="badge badge-info">模型前置</span></div><ol class="rule-list">${rules.selectionRules.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div><div class="card card-pad"><div class="card-title"><h2>内容生成与校验规则</h2><span class="badge badge-warning">双重校验</span></div><ol class="rule-list">${rules.contentRules.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div></section>
-      <section class="card card-pad section-space"><div class="card-title"><div><h2>各阶段实际系统提示词</h2><div class="muted tiny" style="margin-top:4px">以下就是后端当前发给模型的系统提示词；用户上下文会另行挂载本阶段 RAG 结果</div></div><span class="badge badge-success">服务端实时读取</span></div><div class="skill-grid">${(rules.stagePrompts || []).map((item, index) => `<details class="skill-card" ${index === 0 ? "open" : ""}><summary><span class="skill-index">${String(index + 1).padStart(2, "0")}</span><span><strong>${escapeHtml(item.stage)}</strong><small>${escapeHtml(item.description)} · ${fmt(item.prompt.length)} 字符</small></span><i class="fa fa-angle-down"></i></summary><div class="skill-card-body"><div class="skill-meta"><span>装载：${item.skills.map(escapeHtml).join(" → ")}</span></div><pre class="prompt-view">${escapeHtml(item.prompt)}</pre></div></details>`).join("")}</div></section>
+      <section class="card card-pad section-space"><div class="card-title"><div><h2>各阶段实际系统提示词</h2><div class="muted tiny" style="margin-top:4px">以下就是后端当前发给模型的系统提示词；用户上下文会另行挂载本阶段 RAG 结果</div></div><span class="badge badge-success">${rulesSource}</span></div><div class="skill-grid">${(rules.stagePrompts || []).map((item, index) => `<details class="skill-card" ${index === 0 ? "open" : ""}><summary><span class="skill-index">${String(index + 1).padStart(2, "0")}</span><span><strong>${escapeHtml(item.stage)}</strong><small>${escapeHtml(item.description)} · ${fmt(item.prompt.length)} 字符</small></span><i class="fa fa-angle-down"></i></summary><div class="skill-card-body"><div class="skill-meta"><span>装载：${item.skills.map(escapeHtml).join(" → ")}</span></div><pre class="prompt-view">${escapeHtml(item.prompt)}</pre></div></details>`).join("")}</div></section>
       <section class="card card-pad section-space"><div class="card-title"><h2>模型工作流</h2></div><div class="pipeline">${rules.workflow.map((item, index) => `${index ? '<i class="fa fa-angle-right pipeline-arrow"></i>' : ""}<div class="pipeline-step ${index < 5 ? "done" : ""}"><div class="tiny">${escapeHtml(item)}</div></div>`).join("")}</div></section>
       <section class="card card-pad section-space"><div class="card-title"><h2>Skills 与业务资料来源</h2><span class="muted tiny">运行时技能与设计依据分开展示</span></div><div class="topic-list">${rules.skillSources.map((item, index) => `<div class="topic-row"><div class="topic-number">S${index + 1}</div><div><h3>${escapeHtml(item.name)}</h3><div class="muted tiny">${escapeHtml(item.purpose)}</div><div class="tiny" style="margin-top:5px;color:var(--brand)">${escapeHtml(item.source)}</div></div><span class="badge ${item.kind === "运行时 Skill" ? "badge-success" : "badge-neutral"}">${escapeHtml(item.kind || "资料来源")}</span></div>`).join("")}</div></section>`;
   }

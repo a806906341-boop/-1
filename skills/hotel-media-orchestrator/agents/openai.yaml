@@ -1,0 +1,4 @@
+interface:
+  display_name: "酒店新媒体总编排"
+  short_description: "编排酒店内容从事实读取、选题生产到发布复盘的完整可审计执行链路"
+  default_prompt: "使用 $hotel-media-orchestrator 编排一次可审计的酒店新媒体内容任务。"

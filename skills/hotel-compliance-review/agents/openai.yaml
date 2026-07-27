@@ -1,0 +1,4 @@
+interface:
+  display_name: "酒店内容合规审核"
+  short_description: "执行事实广告平台品牌素材六层审核并生成质量分和发布门禁"
+  default_prompt: "使用 $hotel-compliance-review 审核酒店内容并给出可执行修改意见。"

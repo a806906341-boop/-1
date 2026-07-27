@@ -1,0 +1,4 @@
+interface:
+  display_name: "酒店视觉选材"
+  short_description: "为酒店内容匹配真实素材、封面、图片顺序、镜头计划和补拍任务"
+  default_prompt: "使用 $hotel-visual-director 为内容选择真实图片并制定视觉顺序。"

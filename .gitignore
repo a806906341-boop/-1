@@ -1,0 +1,9 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.DS_Store
+
+# OTA 原始下载缓存约 2.3GB，不整体进入普通 GitHub 仓库。
+# 三个测试账号的 924 张照片单独放入 assets/hotels，其余酒店使用快照原图 URL。
+大理100家酒店调研交付_20260716/

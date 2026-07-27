@@ -1,0 +1,4 @@
+interface:
+  display_name: "酒店选题策略"
+  short_description: "结合532结构、账号阶段、历史表现和素材库存生成可执行选题"
+  default_prompt: "使用 $hotel-topic-strategy 生成三个有依据且可执行的酒店选题。"

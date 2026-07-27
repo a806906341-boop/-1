@@ -1,0 +1,4 @@
+interface:
+  display_name: "酒店事实约束"
+  short_description: "核验OTA与商家知识库并形成可引用事实、冲突和待确认信息清单"
+  default_prompt: "使用 $hotel-fact-grounding 核验本次内容可使用的酒店事实和证据缺口。"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "抖音发布补全"
+  short_description: "把审核内容映射并补齐抖音创作者中心全部发布字段与提交状态"
+  default_prompt: "使用 $douyin-publish-completion 补齐抖音创作者中心发布信息。"

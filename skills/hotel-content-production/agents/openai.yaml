@@ -1,0 +1,4 @@
+interface:
+  display_name: "酒店内容生产"
+  short_description: "将选题生成平台原生标题、正文、标签、封面、镜头和行动引导"
+  default_prompt: "使用 $hotel-content-production 将选题生成可发布的酒店短内容。"

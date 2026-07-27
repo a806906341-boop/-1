@@ -1,0 +1,12 @@
+{
+  "name": "zhudemax-ai-media",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "node --env-file-if-exists=.env.local server.mjs",
+    "test": "node --test tests/*.test.js",
+    "build:design-prototype": "node scripts/build-user-design-prototype.mjs",
+    "service:status": "launchctl print gui/$(id -u)/com.zhudemax.ai-content-assistant"
+  }
+}

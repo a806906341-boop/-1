@@ -1,0 +1,4 @@
+interface:
+  display_name: "酒店数据复盘"
+  short_description: "复盘曝光互动转化、素材消耗和流程失败并回写下一轮实验策略"
+  default_prompt: "使用 $hotel-performance-loop 复盘酒店账号表现并生成下一轮策略。"

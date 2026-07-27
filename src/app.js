@@ -608,7 +608,6 @@ class App {
       this.aiRules._source = "embedded";
     }
     if (this.state.onboardingCompleted && this.state.ui.view === "aiRules") this.render();
-    } catch (error) { this.aiError = error.message; }
   }
 
   async refreshDouyinInteractionStatus() {
